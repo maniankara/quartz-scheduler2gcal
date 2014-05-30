@@ -22,6 +22,7 @@ parser.add_argument('string', metavar='<secs> <minutes> <hours> <day of month> <
                    help='string in Quartz Scheduler crontab syntax')
 
 args = parser.parse_args()
-print(args.string)
+#print(args.string)
 
 parser = SchedulerParser(args.string[0])
+print parser.getIsoFormat()
