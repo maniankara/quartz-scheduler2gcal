@@ -19,8 +19,10 @@
 # 	- Quartz scheduler: http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/crontrigger
 
 from datetime import datetime
-from datetime import tzinfo # Managing time zones
+#  Managing time zones
+from datetime import tzinfo 
 from datetime import timedelta
+import time
 
 import traceback
 
@@ -104,16 +106,19 @@ class CronDepersonalizer:
 
 		if freq != None: self.rrule = "RRULE:FREQ=%s;" % freq
 		self.startDateTime = datetime(cronEntry['year'], cronEntry['month'],cronEntry['day'],
-			cronEntry['hour'], cronEntry['minute'], cronEntry['second'], tzinfo=GMT2())
+			cronEntry['hour'], cronEntry['minute'], cronEntry['second'], tzinfo=LocalTimeZone())
 		print "Done personalizartion"
 
 # Handling Timezone, better not to rely on pytz
-class GMT2(tzinfo):
+class LocalTimeZone(tzinfo):
 	def utcoffset(self,dt): 
-		return timedelta(hours=2) 
+		return timedelta(hours=2) + self.dst()
 
 	def tzname(self,dt): 
 		return "GMT +5" 
 
-	def dst(self,dt): 
+	def dst(self): 
+		return timedelta(hours=time.daylight)	
+
+	def dst(self, dt):  # Default
 		return timedelta(0)	
