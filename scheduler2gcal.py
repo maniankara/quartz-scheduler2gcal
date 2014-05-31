@@ -33,5 +33,5 @@ class SchedulerParser:
 			print "Error occured:", e
 			raise e
 
-	def getIsoFormat(self):
+	def getGcalFormat(self):
 		return self.datetime.isoformat('T')

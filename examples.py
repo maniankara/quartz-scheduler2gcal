@@ -25,4 +25,4 @@ args = parser.parse_args()
 #print(args.string)
 
 parser = SchedulerParser(args.string[0])
-print parser.getIsoFormat()
+print parser.getGcalFormat()
