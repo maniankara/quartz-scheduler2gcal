@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import argparse
-from quartzscheduler2py import SchedulerParser
+from scheduler2gcal import SchedulerParser
 
 
 parser = argparse.ArgumentParser(description='Example Quartz Scheduler parser')

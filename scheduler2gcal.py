@@ -20,6 +20,21 @@
 
 from datetime import datetime
 
+import traceback
+
+
+_GCALEVENT = {
+    'start': {
+      'dateTime': None
+    },
+	'recurrence': [
+  #"RRULE:FREQ=WEEKLY;UNTIL=20110701T160000Z",
+  # EXRULE, RDATE, EXDATE...
+	]
+}	
+
+
+
 class SchedulerParser:
 	def __init__(self, string):
 		if string == None or len(string) < 1: raise NameError('String cannot be empty')
@@ -27,11 +42,54 @@ class SchedulerParser:
 		try:
 			quartzCronEntry = string.split()
 			if len(quartzCronEntry) != 6: raise NameError('Wrong cron entry, check usage')
-			second, minute, hour, day, month, year = quartzCronEntry 
-			self.datetime = datetime(int(year), int(month), int(day), int(hour), int(minute), int(second))
+			cronEntry = {'second':quartzCronEntry[0],
+							'minute':quartzCronEntry[1],
+							'hour':quartzCronEntry[2],
+							'day':quartzCronEntry[3],
+							'month':quartzCronEntry[4],
+							'year':quartzCronEntry[5]
+							}
+			_cd = CronDepersonalizer()
+			_cd.depersonalize(cronEntry)
+			_GCALEVENT['start']['dateTime'] = _cd.startDateTime
+			if _cd.rrule: _GCALEVENT['recurrence'].append(_cd.rrule) 
 		except Exception, e:
 			print "Error occured:", e
+			traceback.print_exc()
 			raise e
 
 	def getGcalFormat(self):
-		return self.datetime.isoformat('T')
+		#return self.datetime.isoformat('T')
+		return _GCALEVENT
+
+class CronDepersonalizer:
+	def __init__(self):
+		self.rrule = None
+		self.startDateTime = None
+
+	def depersonalize(self, cronEntry):
+		freq = None
+		now = datetime.now()
+		for entity, value in cronEntry.items():
+			try:
+				cronEntry[entity] = int(value)
+			except Exception:
+				if entity in ['second', 'minute', 'hour']:
+					raise NameError("Only numbers allowed for seconds, minute and hour entries")
+				elif value in ['*', '?']:
+					freq = 'DAILY'
+					if entity == 'year':
+						cronEntry[entity] = now.year
+					elif entity == 'month':
+						cronEntry[entity] = now.month
+					elif entity == 'day':
+						cronEntry[entity] = now.day
+				else:
+					raise NameError("Only * and ? cron expressions are implemented")
+
+		if freq != None: self.rrule = "RRULE:FREQ=%s;" % freq
+		self.startDateTime = datetime(cronEntry['year'], cronEntry['month'],cronEntry['day'],
+			cronEntry['hour'], cronEntry['minute'], cronEntry['second']).isoformat('T')
+		#if cronEntry,
+		#	cronEntry['hour'], cronEntry['minute'], cronEntry['second']).isoformat('T')
+		print "Done personalizartion"
