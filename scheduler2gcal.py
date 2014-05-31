@@ -27,6 +27,9 @@ _GCALEVENT = {
     'start': {
       'dateTime': None
     },
+    'end': {
+      'dateTime': None
+    },
 	'recurrence': [
   #"RRULE:FREQ=WEEKLY;UNTIL=20110701T160000Z",
   # EXRULE, RDATE, EXDATE...
@@ -38,29 +41,36 @@ _GCALEVENT = {
 class SchedulerParser:
 	def __init__(self, string):
 		if string == None or len(string) < 1: raise NameError('String cannot be empty')
-		self.datetime = None # Datetime Object
+		self._timeDelta = None # To calculate the start time
+
 		try:
 			quartzCronEntry = string.split()
 			if len(quartzCronEntry) != 6: raise NameError('Wrong cron entry, check usage')
-			cronEntry = {'second':quartzCronEntry[0],
+			self._cronEntry = {'second':quartzCronEntry[0],
 							'minute':quartzCronEntry[1],
 							'hour':quartzCronEntry[2],
 							'day':quartzCronEntry[3],
 							'month':quartzCronEntry[4],
 							'year':quartzCronEntry[5]
 							}
-			_cd = CronDepersonalizer()
-			_cd.depersonalize(cronEntry)
-			_GCALEVENT['start']['dateTime'] = _cd.startDateTime
-			if _cd.rrule: _GCALEVENT['recurrence'].append(_cd.rrule) 
+
 		except Exception, e:
 			print "Error occured:", e
 			traceback.print_exc()
 			raise e
 
+	def setDuration(self, timeDelta):
+		self._timeDelta = timeDelta
+
 	def getGcalFormat(self):
-		#return self.datetime.isoformat('T')
+		_cd = CronDepersonalizer()
+		_cd.depersonalize(self._cronEntry)
+		_GCALEVENT['start']['dateTime'] = _cd.startDateTime.isoformat('T')
+		if self._timeDelta: _GCALEVENT['end']['dateTime'] = (_cd.startDateTime + self._timeDelta).isoformat('T') 
+		if _cd.rrule: _GCALEVENT['recurrence'].append(_cd.rrule) 		
 		return _GCALEVENT
+
+
 
 class CronDepersonalizer:
 	def __init__(self):
@@ -89,7 +99,7 @@ class CronDepersonalizer:
 
 		if freq != None: self.rrule = "RRULE:FREQ=%s;" % freq
 		self.startDateTime = datetime(cronEntry['year'], cronEntry['month'],cronEntry['day'],
-			cronEntry['hour'], cronEntry['minute'], cronEntry['second']).isoformat('T')
+			cronEntry['hour'], cronEntry['minute'], cronEntry['second'])
 		#if cronEntry,
 		#	cronEntry['hour'], cronEntry['minute'], cronEntry['second']).isoformat('T')
 		print "Done personalizartion"

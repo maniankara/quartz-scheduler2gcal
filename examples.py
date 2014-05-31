@@ -15,6 +15,8 @@
 # limitations under the License.
 import argparse
 from scheduler2gcal import SchedulerParser
+from datetime import timedelta
+
 
 
 parser = argparse.ArgumentParser(description='Example Quartz Scheduler parser')
@@ -25,4 +27,6 @@ args = parser.parse_args()
 #print(args.string)
 
 parser = SchedulerParser(args.string[0])
+print parser.getGcalFormat()
+parser.setDuration(timedelta(hours=2))
 print parser.getGcalFormat()
