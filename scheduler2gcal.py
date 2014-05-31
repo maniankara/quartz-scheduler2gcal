@@ -117,8 +117,6 @@ class LocalTimeZone(tzinfo):
 	def tzname(self,dt): 
 		return "GMT +5" 
 
-	def dst(self): 
-		return timedelta(hours=time.daylight)	
-
-	def dst(self, dt):  # Default
-		return timedelta(0)	
+	def dst(self, dt=None): 
+		delta = dt if dt != None else time.daylight
+		return timedelta(hours=delta)	
