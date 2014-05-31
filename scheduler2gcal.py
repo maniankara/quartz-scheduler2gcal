@@ -19,6 +19,8 @@
 # 	- Quartz scheduler: http://quartz-scheduler.org/documentation/quartz-2.2.x/tutorials/crontrigger
 
 from datetime import datetime
+from datetime import tzinfo # Managing time zones
+from datetime import timedelta
 
 import traceback
 
@@ -44,6 +46,7 @@ class SchedulerParser:
 		self._timeDelta = None # To calculate the start time
 
 		try:
+			# Convert the given cli params as a dict
 			quartzCronEntry = string.split()
 			if len(quartzCronEntry) != 6: raise NameError('Wrong cron entry, check usage')
 			self._cronEntry = {'second':quartzCronEntry[0],
@@ -59,9 +62,11 @@ class SchedulerParser:
 			traceback.print_exc()
 			raise e
 
+	# Optional definition to set the endtime
 	def setDuration(self, timeDelta):
 		self._timeDelta = timeDelta
 
+	# Returns a compatible google calender format
 	def getGcalFormat(self):
 		_cd = CronDepersonalizer()
 		_cd.depersonalize(self._cronEntry)
@@ -74,8 +79,8 @@ class SchedulerParser:
 
 class CronDepersonalizer:
 	def __init__(self):
-		self.rrule = None
-		self.startDateTime = None
+		self.rrule 			= None
+		self.startDateTime 	= None
 
 	def depersonalize(self, cronEntry):
 		freq = None
@@ -87,8 +92,8 @@ class CronDepersonalizer:
 				if entity in ['second', 'minute', 'hour']:
 					raise NameError("Only numbers allowed for seconds, minute and hour entries")
 				elif value in ['*', '?']:
-					freq = 'DAILY'
-					if entity == 'year':
+					freq 		= 'DAILY'
+					if entity 	== 'year':
 						cronEntry[entity] = now.year
 					elif entity == 'month':
 						cronEntry[entity] = now.month
@@ -99,7 +104,16 @@ class CronDepersonalizer:
 
 		if freq != None: self.rrule = "RRULE:FREQ=%s;" % freq
 		self.startDateTime = datetime(cronEntry['year'], cronEntry['month'],cronEntry['day'],
-			cronEntry['hour'], cronEntry['minute'], cronEntry['second'])
-		#if cronEntry,
-		#	cronEntry['hour'], cronEntry['minute'], cronEntry['second']).isoformat('T')
+			cronEntry['hour'], cronEntry['minute'], cronEntry['second'], tzinfo=GMT2())
 		print "Done personalizartion"
+
+# Handling Timezone, better not to rely on pytz
+class GMT2(tzinfo):
+	def utcoffset(self,dt): 
+		return timedelta(hours=2) 
+
+	def tzname(self,dt): 
+		return "GMT +5" 
+
+	def dst(self,dt): 
+		return timedelta(0)	
