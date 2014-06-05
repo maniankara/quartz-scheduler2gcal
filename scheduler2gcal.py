@@ -27,25 +27,29 @@ import time
 import traceback
 
 
-_GCALEVENT = {
-    'start': {
-      'dateTime': None
-    },
-    'end': {
-      'dateTime': None
-    },
-	'recurrence': [
-  #"RRULE:FREQ=WEEKLY;UNTIL=20110701T160000Z",
-  # EXRULE, RDATE, EXDATE...
-	]
-}	
 
 
 
 class SchedulerParser:
+
+
 	def __init__(self, string):
-		if string == None or len(string) < 1: raise NameError('String cannot be empty')
+		# gcalevent Template
+		self._gcalevent = {           
+		    'start': {
+		      'dateTime': None
+		    },
+		    'end': {
+		      'dateTime': None
+		    },
+			'recurrence': [
+		  #"RRULE:FREQ=WEEKLY;UNTIL=20110701T160000Z",
+		  # EXRULE, RDATE, EXDATE...
+			]
+		}	
 		self._timeDelta = None # To calculate the start time
+		if string == None or len(string) < 1: raise NameError('String cannot be empty')
+
 
 		try:
 			# Convert the given cli params as a dict
@@ -72,10 +76,10 @@ class SchedulerParser:
 	def getGcalFormat(self):
 		_cd = CronDepersonalizer()
 		_cd.depersonalize(self._cronEntry)
-		_GCALEVENT['start']['dateTime'] = _cd.startDateTime.isoformat('T')
-		if self._timeDelta: _GCALEVENT['end']['dateTime'] = (_cd.startDateTime + self._timeDelta).isoformat('T') 
-		if _cd.rrule: _GCALEVENT['recurrence'].append(_cd.rrule) 		
-		return _GCALEVENT
+		self._gcalevent['start']['dateTime'] = _cd.startDateTime.isoformat('T')
+		if self._timeDelta: self._gcalevent['end']['dateTime'] = (_cd.startDateTime + self._timeDelta).isoformat('T') 
+		if _cd.rrule: self._gcalevent['recurrence'].append(_cd.rrule) 		
+		return self._gcalevent
 
 
 
